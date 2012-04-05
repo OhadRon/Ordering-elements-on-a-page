@@ -1,0 +1,282 @@
+<html>
+<head>
+	<title>Unit ordering demo</title>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+
+	<style type="text/css">
+
+body{
+	background-color: #e1e1e1;
+	color: #333;
+	font-family: Arial;
+	font-size: 13px;
+}
+
+#main{
+	margin: 0 auto;
+	width: 820px;
+	position: relative;
+
+}
+
+.unit{
+	position: absolute;
+	width: 400px;
+	height: 120px;
+	border-radius: 5px;
+	background-color: #4b7995;
+	margin: 10px;
+	padding: 10px;
+	z-index: 5;
+	opacity: 0.7;
+	overflow: hidden;
+
+}
+
+.alternate{
+	background-color: #95445d;
+}
+.unit p{
+	color: #fff;
+	font-size: 40px;
+	position: absolute;
+	right: 30px;
+	top: 0px;
+	
+}
+
+.unit.focus{
+	/*background-color: #74b7e1;*/
+	z-index: 10;
+}
+
+.button{
+	border-radius: 5px;
+	background-color: #131f27;
+	color: #ccc;
+	display: inline-block;
+	width: 45px;
+	height: 30px;
+	text-align: center;
+	margin: 0px;
+	line-height: 30px;
+}
+
+.button:hover{
+	background-color: #365e7f;
+}
+
+.selectable {
+    -moz-user-select: text;
+    -khtml-user-select: text;
+    -webkit-user-select: text;
+    -o-user-select: text;
+    user-select: text;
+}
+
+.unselectable {
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+	</style>
+ 
+</head>
+<body>
+
+<div id="main">
+	<div class="unit" data-location="0" data-align="l"><p>Elephant</p></div>
+	<div class="unit" data-location="0" data-align="l"><p>Giraffe</p></div>
+	<div class="unit" data-location="0" data-align="l"><p>Monkey</p></div>
+	<div class="unit" data-location="0" data-align="l"><p>Lion</p></div>
+	<div class="unit" data-location="0" data-align="l"><p>Tiger</p></div>
+	<div class="unit" data-location="0" data-align="l"><p>Ostrich</p></div>
+	<div class="unit" data-location="0" data-align="l"><p>Alligator</p></div>
+	<div class="unit" data-location="0" data-align="l"><p>Bear</p></div>
+	<div class="unit" data-location="0" data-align="l"><p>Zebra</p></div>
+	<div class="unit" data-location="0" data-align="l"><p>Peacock</p></div>
+	<div class="unit alternate" data-location="0" data-align="r"><p>Elephant</p></div>
+	<div class="unit alternate" data-location="0" data-align="r"><p>Giraffe</p></div>
+	<div class="unit alternate" data-location="0" data-align="r"><p>Monkey</p></div>
+	<div class="unit alternate" data-location="0" data-align="r"><p>Lion</p></div>
+	<div class="unit alternate" data-location="0" data-align="r"><p>Tiger</p></div>
+	<div class="unit alternate" data-location="0" data-align="r"><p>Ostrich</p></div>
+	<div class="unit alternate" data-location="0" data-align="r"><p>Alligator</p></div>
+	<div class="unit alternate" data-location="0" data-align="r"><p>Bear</p></div>
+	<div class="unit alternate" data-location="0" data-align="r"><p>Zebra</p></div>
+	<div class="unit alternate" data-location="0" data-align="r"><p>Peacock</p></div>
+
+</div>
+<script type="text/javascript">
+
+$(window).load(function(){
+
+	var simul_protect = false;
+	var l_counter = 0;
+	var r_counter = 0;
+	var topLeft = 0;
+	var topRight = 0;
+	var speeds = 300;
+	var leftCol = 0;
+	var rightCol = 425;
+
+	$('.unit').each(function(){
+		$(this).css('height', getRandomInt(140,340));
+		if ($(this).attr('data-align')=='l'){
+			$(this).attr('data-location',l_counter);
+			$(this).css('top', topLeft);
+			$(this).css('left', leftCol);
+			topLeft += $(this).outerHeight()+5;
+			l_counter++;
+		} else {
+			$(this).attr('data-location',r_counter);
+			$(this).css('top', topRight);
+			$(this).css('left', rightCol);
+			topRight += $(this).outerHeight()+5;
+			r_counter++;
+		}
+		$(this).addClass('unselectable');
+	});
+
+	$('p').removeClass('unselectable').addClass('selectable');
+
+	function getRandomInt (min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+	}
+
+	function setFocus(what){
+		$('.focus').fadeTo(100,0.7);
+		$('.focus .button').detach();
+		$('.focus').removeClass('focus');
+		if(what){
+			what.append('<div class="button doup">Up</div> <div class="button dodown">Down</div> <div class="button doside">Side</div>');
+			what.addClass('focus');
+			what.fadeTo(100,1);
+		}
+	}
+
+	function whichAdjac(what){ // checks which unit is in the opposite grid side of this one.
+		var unit = $(what).closest('.unit');
+		var thisplace = unit.position().top;
+		var thisalign = unit.attr('data-align');
+		var adjacent;
+		$('.unit[data-align!='+thisalign+']').each(function(){
+			var othertop = $(this).position().top-3;
+			var otherbottom = $(this).position().top+$(this).outerHeight()+5;
+			if((othertop<thisplace) && (otherbottom>thisplace)){
+				adjacent = $(this);
+				return false;
+			}
+		});
+		return adjacent;
+	}
+
+	function sideSwitch(what){ 
+		what = what.closest('.unit');
+		var adjacent = whichAdjac(what);
+		var oldside = what.attr('data-align');
+		if (adjacent == null){
+			var newside = (oldside == 'r') ? 'l' : 'r';
+			var newlocation = 0;
+			var newleft = what.outerWidth()+5;
+			var newtop = 0;
+			$('.unit[data-align='+newside+']').each(function(){
+				if (parseInt($(this).attr('data-location'))>newlocation){
+					newlocation = parseInt($(this).attr('data-location'));
+					newtop = $(this).position().top + $(this).outerHeight() + 5;
+					newleft = $(this).position().left;
+				}
+			});
+			newlocation+=1;
+		} else {
+			var newside = adjacent.attr('data-align');
+			var newlocation = adjacent.attr('data-location');
+			var newtop = adjacent.position().top;
+			var newleft = adjacent.position().left;	
+		}
+		var oldlocation = what.attr('data-location');
+		var movingheight = what.outerHeight()+5;
+		what.animate({top: newtop, left: newleft}, speeds);
+		$('.unit[data-align='+newside+']').each(function(){
+			var unitlocation = parseInt($(this).attr('data-location'));
+			if(unitlocation >= newlocation){
+				$(this).animate({top:'+='+ movingheight},speeds);
+				$(this).attr('data-location', unitlocation+1);
+			}
+		});
+		what.attr('data-align', newside);
+		$('.unit[data-align='+oldside+']').each(function(){
+			var unitlocation = parseInt($(this).attr('data-location'));
+			if(unitlocation >= oldlocation){
+				$(this).animate({top:'-='+ movingheight},speeds);
+				$(this).attr('data-location', unitlocation-1);
+			}
+		});
+		what.attr('data-location', newlocation);
+	
+
+	}
+
+	function flip(what, where){
+		if (!simul_protect){			
+			var thisone = what.closest('.unit');
+			var position = parseInt(thisone.attr('data-location'));
+			var next = position+where;
+			var thisalign = thisone.data('align');
+			var nextone = $('.unit[data-location='+next+'][data-align='+thisalign+']');
+			if (nextone[0]){
+				simul_protect = true;
+				var curx = parseInt(thisone.css('top'));
+				if (where>0){
+					var upper = thisone;
+					var lower = nextone;
+
+				} else{
+					var upper = nextone;
+					var lower = thisone;
+				};				
+				var target = parseInt(lower.css('height'))-parseInt(upper.css('height'));
+				target += parseInt(lower.css('top'));
+				upper.animate({top: target},speeds);
+				lower.animate({top: upper.css('top')},{duration: speeds,complete: function(){ simul_protect = false;}}); //only allow non-simultanious animation
+				nextone.attr('data-location', position);
+				thisone.attr('data-location', next);
+				if (where>0){
+					var difference = target - curx;	
+				} else{
+					var difference = parseInt(upper.css('top')) - curx;	
+				}
+				$('html,body').animate({scrollTop: $(document).scrollTop()+difference},speeds);
+			}
+		}
+	}
+
+	$('.dodown').live('click', function(e) {
+    		flip($(this),1);
+	});
+
+
+	$('.doup').live('click', function(e) {
+    		flip($(this),-1);
+	});
+
+	$('.doside').live('click', function(e) {
+    		sideSwitch($(this));
+	});
+
+	$('.unit').hover(function(){
+		setFocus($(this));
+	},function(){
+		setFocus();
+	});
+
+});
+
+</script>
+
+
+</body>
+</html>
