@@ -89,12 +89,12 @@ body{
 
 <div id="main">
 	<div class="unit" data-location="0" data-align="l"><p>Elephant</p></div>
-	<div class="unit" data-location="0" data-align="l"><p>Giraffe</p></div>
+	<div class="unit" data-location="0" data-align="w"><p>Giraffe</p></div>
 	<div class="unit" data-location="0" data-align="l"><p>Monkey</p></div>
 	<div class="unit" data-location="0" data-align="l"><p>Lion</p></div>
 	<div class="unit" data-location="0" data-align="l"><p>Tiger</p></div>
 	<div class="unit" data-location="0" data-align="l"><p>Ostrich</p></div>
-	<div class="unit" data-location="0" data-align="l"><p>Alligator</p></div>
+	<div class="unit" data-location="0" data-align="w"><p>Alligator</p></div>
 	<div class="unit" data-location="0" data-align="l"><p>Bear</p></div>
 	<div class="unit" data-location="0" data-align="l"><p>Zebra</p></div>
 	<div class="unit" data-location="0" data-align="l"><p>Peacock</p></div>
@@ -115,29 +115,61 @@ body{
 $(window).load(function(){
 
 	var simul_protect = false;
+
+	var margins = 25;
+	var elements = 470; // one unit width
+
+	$('#main').width(elements*2 + margins);
+	$('.unit').width(elements);
+
+	var leftcol = 0;
+	var rightcol = 0;
+	var gapzones = [];
+
 	var l_counter = 0;
 	var r_counter = 0;
-	var topLeft = 0;
-	var topRight = 0;
-	var speeds = 300;
-	var leftCol = 0;
-	var rightCol = 425;
+
+	var speeds = 300; // animation speeds
+
+	$(".unit[data-align='l'], .unit[data-align='w']").each(function(i){
+		$(this).attr('data-location',l_counter);
+		l_counter++;
+		switch ($(this).attr('data-align')){
+			case "l":
+				$(this).css('left', 0);
+				$(this).css('top', leftcol);
+				leftcol += margins + $(this).height();				
+				break;
+			case "w":
+			 	$(this).width(elements*2+margins);
+				$(this).css('left', 0);
+				$(this).css('top', leftcol);
+				leftcol += margins + $(this).height();
+				//define gap zone for this wide unit:
+				zone = { x : parseInt($(this).css('top')), h: parseInt($(this).outerHeight())};
+				gapzones.push(zone);
+				break;
+		}			
+	});
+
+	// set position of right column units
+	$(".unit[data-align='r']").each(function(i){
+		$(this).css('left', elements+margins);
+		// if this unit hits a gapzone:
+		while((gapzones.length>0) && (margins + rightcol + $(this).height()>gapzones[0].x)){
+			rightcol = gapzones[0].x + gapzones[0].h + margins;
+			gapzones.shift();
+		}
+		$(this).css('top', rightcol);
+		rightcol += margins + $(this).height();
+		$(this).attr('data-location',r_counter);
+		r_counter++;
+
+	});
+
+	$('#main').height(Math.max(leftcol, rightcol)+margins);
 
 	$('.unit').each(function(){
-		$(this).css('height', getRandomInt(140,340));
-		if ($(this).attr('data-align')=='l'){
-			$(this).attr('data-location',l_counter);
-			$(this).css('top', topLeft);
-			$(this).css('left', leftCol);
-			topLeft += $(this).outerHeight()+5;
-			l_counter++;
-		} else {
-			$(this).attr('data-location',r_counter);
-			$(this).css('top', topRight);
-			$(this).css('left', rightCol);
-			topRight += $(this).outerHeight()+5;
-			r_counter++;
-		}
 		$(this).addClass('unselectable');
 	});
 
