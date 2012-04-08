@@ -135,7 +135,7 @@ $(window).load(function(){
 	});
 
 	positionLefts();
-	positionRights(true);
+	positionRights();
 
 	function positionLefts(){
 		var leftcol = 0;
@@ -165,18 +165,17 @@ $(window).load(function(){
 		};
 	}
 
-	function positionRights(isnew){
-		isnew = (typeof isnew == "undefined") ? false : isnew; // defines if this is the first positioning, on page load.
+	function positionRights(){
 		var r_counter = 0;
 		var rightcol = 0;
 		var rightunits = $(".unit[data-align='r']");
 		// set position of right column units
-		console.log(rightunits.length);
 		for (var i = 0; i < rightunits.length; i++) {
 			var currentunit = $(".unit[data-align='r'][data-location="+i+"]");
 			currentunit.css('left', elements+margins);
 			// if this unit hits a gapzone:
 			while((gapzones.length>0) && (margins + rightcol + currentunit.height()>gapzones[0].x)){
+
 				rightcol = gapzones[0].x + gapzones[0].h + margins;
 				gapzones.shift();
 			}
@@ -188,8 +187,14 @@ $(window).load(function(){
 	}
 
 	function createGapZones(unit){	//define gap zone for the wide units:
-		zone = { x : parseInt($(unit).css('top')), h: parseInt($(unit).outerHeight())};
-		gapzones.push(zone);
+		if ((gapzones.length>0) && ((gapzones[gapzones.length-1].x + gapzones[gapzones.length-1].h)> parseInt($(unit).css('top'))-25)){ // if the new gapzone is going to be just a continuation of a current one.
+			gapzones[gapzones.length-1].h += parseInt($(unit).outerHeight())+margins;
+			gapzones[gapzones.length-1].x = Math.min(gapzones[gapzones.length-1].x,parseInt($(unit).css('top')));
+			console.log(gapzones[gapzones.length-1]);
+		} else {		 
+			zone = { x : parseInt($(unit).css('top')), h: parseInt($(unit).outerHeight())};
+			gapzones.push(zone);	
+		}
 	}
 
 	function reorderRights(){
