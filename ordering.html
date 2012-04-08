@@ -138,7 +138,6 @@ $(window).load(function(){
 	positionRights();
 
 	function positionLefts(){
-		gapzones = [];
 		var leftcol = 0;
 		var l_counter = 0;
 		var leftunits = $(".unit[data-align='l'], .unit[data-align='w']");
@@ -176,8 +175,6 @@ $(window).load(function(){
 			currentunit.css('left', elements+margins);
 			// if this unit hits a gapzone:
 			while((gapzones.length>0) && (margins + rightcol + currentunit.height()>gapzones[0].x)){
-				console.log(gapzones[0]);
-
 				rightcol = gapzones[0].x + gapzones[0].h + margins;
 				gapzones.shift();
 			}
@@ -192,7 +189,6 @@ $(window).load(function(){
 		if ((gapzones.length>0) && ((gapzones[gapzones.length-1].x + gapzones[gapzones.length-1].h)> parseInt($(unit).css('top'))-25)){ // if the new gapzone is going to be just a continuation of a current one.
 			gapzones[gapzones.length-1].h += parseInt($(unit).outerHeight())+margins;
 			gapzones[gapzones.length-1].x = Math.min(gapzones[gapzones.length-1].x,parseInt($(unit).css('top')));
-			console.log(gapzones[gapzones.length-1]);
 		} else {		 
 			zone = { x : parseInt($(unit).css('top')), h: parseInt($(unit).outerHeight())};
 			gapzones.push(zone);	
@@ -201,10 +197,17 @@ $(window).load(function(){
 
 	function reorderRights(){
 		$(":animated").promise().done(function(){
-			gapzones = [];
-			$(".unit[data-align='w']").each(function(){
-				createGapZones(this);
-			});
+			gapzones.length = 0;
+			var leftunits = $(".unit[data-align='w'] , .unit[data-align='l']");	
+			for (var i = 0; i < leftunits.length; i++) {
+				wideunit = leftunits.filter("[data-location="+i+"]");
+
+				if (wideunit.attr('data-align')=='w'){
+					createGapZones(wideunit);
+				}
+
+			};
+
 			positionRights();
 		});
 	}
