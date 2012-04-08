@@ -138,6 +138,7 @@ $(window).load(function(){
 	positionRights();
 
 	function positionLefts(){
+		gapzones = [];
 		var leftcol = 0;
 		var l_counter = 0;
 		var leftunits = $(".unit[data-align='l'], .unit[data-align='w']");
@@ -175,6 +176,7 @@ $(window).load(function(){
 			currentunit.css('left', elements+margins);
 			// if this unit hits a gapzone:
 			while((gapzones.length>0) && (margins + rightcol + currentunit.height()>gapzones[0].x)){
+				console.log(gapzones[0]);
 
 				rightcol = gapzones[0].x + gapzones[0].h + margins;
 				gapzones.shift();
