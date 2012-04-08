@@ -26,7 +26,7 @@ body{
 	border-radius: 5px;
 	background-color: #4b7995;
 	margin: 10px;
-	padding: 10px;
+	padding: 0px;
 	z-index: 5;
 	opacity: 0.7;
 	overflow: hidden;
@@ -116,22 +116,31 @@ $(window).load(function(){
 
 	var simul_protect = false;
 
-	var margins = 25;
+	var margins = 5;
 	var elements = 470; // one unit width
 
 	$('#main').width(elements*2 + margins);
 	$('.unit').width(elements);
 
-	var leftcol = 0;
-	var rightcol = 0;
 	var gapzones = [];
 
-	var l_counter = 0;
-	var r_counter = 0;
 
 	var speeds = 300; // animation speeds
 
-	$(".unit[data-align='l'], .unit[data-align='w']").each(function(i){
+	// set positions of left and wide columns
+
+	$('.unit').each(function(){
+		$(this).addClass('unselectable');
+		$(this).css('height', getRandomInt(120,300));
+	});
+
+	positionLefts();
+	positionRights();
+
+	function positionLefts(){
+		var leftcol = 0;
+		var l_counter = 0;
+		$(".unit[data-align='l'], .unit[data-align='w']").each(function(i){
 		$(this).attr('data-location',l_counter);
 		l_counter++;
 		switch ($(this).attr('data-align')){
@@ -145,33 +154,44 @@ $(window).load(function(){
 				$(this).css('left', 0);
 				$(this).css('top', leftcol);
 				leftcol += margins + $(this).height();
-				//define gap zone for this wide unit:
-				zone = { x : parseInt($(this).css('top')), h: parseInt($(this).outerHeight())};
-				gapzones.push(zone);
+				createGapZones(this);
 				break;
 		}			
-	});
+		});
+	}
 
-	// set position of right column units
-	$(".unit[data-align='r']").each(function(i){
-		$(this).css('left', elements+margins);
-		// if this unit hits a gapzone:
-		while((gapzones.length>0) && (margins + rightcol + $(this).height()>gapzones[0].x)){
-			rightcol = gapzones[0].x + gapzones[0].h + margins;
-			gapzones.shift();
-		}
-		$(this).css('top', rightcol);
-		rightcol += margins + $(this).height();
-		$(this).attr('data-location',r_counter);
-		r_counter++;
+	function positionRights(){
+		var r_counter = 0;
+		var rightcol = 0;
+		// set position of right column units
+		$(".unit[data-align='r']").each(function(i){
+			$(this).css('left', elements+margins);
+			// if this unit hits a gapzone:
+			while((gapzones.length>0) && (margins + rightcol + $(this).height()>gapzones[0].x)){
+				rightcol = gapzones[0].x + gapzones[0].h + margins;
+				gapzones.shift();
+			}
+			$(this).animate({top: rightcol},speeds);
+			rightcol += margins + $(this).height();
+			$(this).attr('data-location',r_counter);
+			r_counter++;
+		});
+	}
 
-	});
+	function createGapZones(unit){	//define gap zone for the wide units:
+		zone = { x : parseInt($(unit).css('top')), h: parseInt($(unit).outerHeight())};
+		gapzones.push(zone);
+	}
 
-	$('#main').height(Math.max(leftcol, rightcol)+margins);
-
-	$('.unit').each(function(){
-		$(this).addClass('unselectable');
-	});
+	function reorderRights(){
+		$(":animated").promise().done(function(){
+			gapzones = [];
+			$(".unit[data-align='w']").each(function(){
+				createGapZones(this);
+			});
+			positionRights();
+		});
+	}
 
 	$('p').removeClass('unselectable').addClass('selectable');
 
@@ -184,11 +204,15 @@ $(window).load(function(){
 		$('.focus .button').detach();
 		$('.focus').removeClass('focus');
 		if(what){
-			what.append('<div class="button doup">Up</div> <div class="button dodown">Down</div> <div class="button doside">Side</div>');
+			what.append('<div class="button doup">Up</div> <div class="button dodown">Down</div>');
+			if(what.attr('data-align') != 'w'){
+				what.append(' <div class="button doside">Side</div>');
+			}
 			what.addClass('focus');
 			what.fadeTo(100,1);
 		}
 	}
+
 
 	function whichAdjac(what){ // checks which unit is in the opposite grid side of this one.
 		var unit = $(what).closest('.unit');
@@ -232,7 +256,12 @@ $(window).load(function(){
 		var oldlocation = what.attr('data-location');
 		var movingheight = what.outerHeight()+5;
 		what.animate({top: newtop, left: newleft}, speeds);
-		$('.unit[data-align='+newside+']').each(function(){
+		if (newside == 'l'){
+			var $newsideunits = $(".unit[data-align='l'], .unit[data-align='w']");
+		} else {
+			var $newsideunits = $(".unit[data-align='r']");			
+		}
+		$newsideunits.each(function(){
 			var unitlocation = parseInt($(this).attr('data-location'));
 			if(unitlocation >= newlocation){
 				$(this).animate({top:'+='+ movingheight},speeds);
@@ -240,7 +269,12 @@ $(window).load(function(){
 			}
 		});
 		what.attr('data-align', newside);
-		$('.unit[data-align='+oldside+']').each(function(){
+		if (oldside == 'l'){
+			var $oldsideunits = $(".unit[data-align='l'], .unit[data-align='w']");
+		} else {
+			var $oldsideunits = $(".unit[data-align='r']");			
+		}
+		$oldsideunits.each(function(){
 			var unitlocation = parseInt($(this).attr('data-location'));
 			if(unitlocation >= oldlocation){
 				$(this).animate({top:'-='+ movingheight},speeds);
@@ -248,8 +282,7 @@ $(window).load(function(){
 			}
 		});
 		what.attr('data-location', newlocation);
-	
-
+		reorderRights();
 	}
 
 	function flip(what, where){
@@ -257,8 +290,17 @@ $(window).load(function(){
 			var thisone = what.closest('.unit');
 			var position = parseInt(thisone.attr('data-location'));
 			var next = position+where;
-			var thisalign = thisone.data('align');
+			var thisalign = thisone.attr('data-align');
 			var nextone = $('.unit[data-location='+next+'][data-align='+thisalign+']');
+			// cross check for left and wide units:
+			if ((!nextone[0])&&(thisalign=='l')){
+				nextone = $(".unit[data-location="+next+"][data-align='w']");
+			}
+
+			if ((!nextone[0])&&(thisalign=='w')){
+				nextone = $(".unit[data-location="+next+"][data-align='l']");
+			}
+
 			if (nextone[0]){
 				simul_protect = true;
 				var curx = parseInt(thisone.css('top'));
@@ -273,7 +315,9 @@ $(window).load(function(){
 				var target = parseInt(lower.css('height'))-parseInt(upper.css('height'));
 				target += parseInt(lower.css('top'));
 				upper.animate({top: target},speeds);
-				lower.animate({top: upper.css('top')},{duration: speeds,complete: function(){ simul_protect = false;}}); //only allow non-simultanious animation
+				lower.animate({top: upper.css('top')},{duration: speeds,complete: function(){ 
+					simul_protect = false; // only allow non-simultanious animation
+					}}); 
 				nextone.attr('data-location', position);
 				thisone.attr('data-location', next);
 				if (where>0){
@@ -283,6 +327,7 @@ $(window).load(function(){
 				}
 				$('html,body').animate({scrollTop: $(document).scrollTop()+difference},speeds);
 			}
+		reorderRights();
 		}
 	}
 
