@@ -89,25 +89,25 @@ body{
 
 <div id="main">
 	<div class="unit" data-location="0" data-align="l"><p>Elephant</p></div>
-	<div class="unit" data-location="0" data-align="w"><p>Giraffe</p></div>
-	<div class="unit" data-location="0" data-align="l"><p>Monkey</p></div>
-	<div class="unit" data-location="0" data-align="l"><p>Lion</p></div>
-	<div class="unit" data-location="0" data-align="l"><p>Tiger</p></div>
-	<div class="unit" data-location="0" data-align="l"><p>Ostrich</p></div>
-	<div class="unit" data-location="0" data-align="w"><p>Alligator</p></div>
-	<div class="unit" data-location="0" data-align="l"><p>Bear</p></div>
-	<div class="unit" data-location="0" data-align="l"><p>Zebra</p></div>
-	<div class="unit" data-location="0" data-align="l"><p>Peacock</p></div>
+	<div class="unit" data-location="1" data-align="w"><p>Giraffe</p></div>
+	<div class="unit" data-location="2" data-align="l"><p>Monkey</p></div>
+	<div class="unit" data-location="3" data-align="l"><p>Lion</p></div>
+	<div class="unit" data-location="4" data-align="l"><p>Tiger</p></div>
+	<div class="unit" data-location="5" data-align="l"><p>Ostrich</p></div>
+	<div class="unit" data-location="6" data-align="w"><p>Alligator</p></div>
+	<div class="unit" data-location="7" data-align="l"><p>Bear</p></div>
+	<div class="unit" data-location="8" data-align="l"><p>Zebra</p></div>
+	<div class="unit" data-location="9" data-align="l"><p>Peacock</p></div>
 	<div class="unit alternate" data-location="0" data-align="r"><p>Elephant</p></div>
-	<div class="unit alternate" data-location="0" data-align="r"><p>Giraffe</p></div>
-	<div class="unit alternate" data-location="0" data-align="r"><p>Monkey</p></div>
-	<div class="unit alternate" data-location="0" data-align="r"><p>Lion</p></div>
-	<div class="unit alternate" data-location="0" data-align="r"><p>Tiger</p></div>
-	<div class="unit alternate" data-location="0" data-align="r"><p>Ostrich</p></div>
-	<div class="unit alternate" data-location="0" data-align="r"><p>Alligator</p></div>
-	<div class="unit alternate" data-location="0" data-align="r"><p>Bear</p></div>
-	<div class="unit alternate" data-location="0" data-align="r"><p>Zebra</p></div>
-	<div class="unit alternate" data-location="0" data-align="r"><p>Peacock</p></div>
+	<div class="unit alternate" data-location="1" data-align="r"><p>Giraffe</p></div>
+	<div class="unit alternate" data-location="2" data-align="r"><p>Monkey</p></div>
+	<div class="unit alternate" data-location="3" data-align="r"><p>Lion</p></div>
+	<div class="unit alternate" data-location="4" data-align="r"><p>Tiger</p></div>
+	<div class="unit alternate" data-location="5" data-align="r"><p>Ostrich</p></div>
+	<div class="unit alternate" data-location="6" data-align="r"><p>Alligator</p></div>
+	<div class="unit alternate" data-location="7" data-align="r"><p>Bear</p></div>
+	<div class="unit alternate" data-location="8" data-align="r"><p>Zebra</p></div>
+	<div class="unit alternate" data-location="9" data-align="r"><p>Peacock</p></div>
 
 </div>
 <script type="text/javascript">
@@ -135,7 +135,7 @@ $(window).load(function(){
 	});
 
 	positionLefts();
-	positionRights();
+	positionRights(true);
 
 	function positionLefts(){
 		var leftcol = 0;
@@ -160,22 +160,26 @@ $(window).load(function(){
 		});
 	}
 
-	function positionRights(){
+	function positionRights(isnew){
+		isnew = (typeof isnew == "undefined") ? false : isnew; // defines if this is the first positioning, on page load.
 		var r_counter = 0;
 		var rightcol = 0;
+		var rightunits = $(".unit[data-align='r']");
 		// set position of right column units
-		$(".unit[data-align='r']").each(function(i){
-			$(this).css('left', elements+margins);
+		console.log(rightunits.length);
+		for (var i = 0; i < rightunits.length; i++) {
+			var currentunit = $(".unit[data-align='r'][data-location="+i+"]");
+			currentunit.css('left', elements+margins);
 			// if this unit hits a gapzone:
-			while((gapzones.length>0) && (margins + rightcol + $(this).height()>gapzones[0].x)){
+			while((gapzones.length>0) && (margins + rightcol + currentunit.height()>gapzones[0].x)){
 				rightcol = gapzones[0].x + gapzones[0].h + margins;
 				gapzones.shift();
 			}
-			$(this).animate({top: rightcol},speeds);
-			rightcol += margins + $(this).height();
-			$(this).attr('data-location',r_counter);
+			currentunit.animate({top: rightcol},speeds);
+			rightcol += margins + currentunit.height();
+			currentunit.attr('data-location',r_counter);
 			r_counter++;
-		});
+		};
 	}
 
 	function createGapZones(unit){	//define gap zone for the wide units:
