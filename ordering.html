@@ -140,24 +140,29 @@ $(window).load(function(){
 	function positionLefts(){
 		var leftcol = 0;
 		var l_counter = 0;
-		$(".unit[data-align='l'], .unit[data-align='w']").each(function(i){
-		$(this).attr('data-location',l_counter);
-		l_counter++;
-		switch ($(this).attr('data-align')){
-			case "l":
-				$(this).css('left', 0);
-				$(this).css('top', leftcol);
-				leftcol += margins + $(this).height();				
-				break;
-			case "w":
-			 	$(this).width(elements*2+margins);
-				$(this).css('left', 0);
-				$(this).css('top', leftcol);
-				leftcol += margins + $(this).height();
-				createGapZones(this);
-				break;
-		}			
-		});
+		var leftunits = $(".unit[data-align='l'], .unit[data-align='w']");
+		for (var i = 0; i < leftunits.length; i++) {
+			var currentunit = $(".unit[data-align='l'][data-location="+i+"]");
+			if (!currentunit[0]){
+				currentunit = $(".unit[data-align='w'][data-location="+i+"]");
+			};
+			currentunit.attr('data-location',l_counter);
+			l_counter++;
+			switch (currentunit.attr('data-align')){
+				case "l":
+					currentunit.css('left', 0);
+					currentunit.css('top', leftcol);
+					leftcol += margins + currentunit.height();				
+					break;
+				case "w":
+				 	currentunit.width(elements*2+margins);
+					currentunit.css('left', 0);
+					currentunit.css('top', leftcol);
+					leftcol += margins + currentunit.height();
+					createGapZones(currentunit);
+					break;
+			}			
+		};
 	}
 
 	function positionRights(isnew){
