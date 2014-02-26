@@ -1,0 +1,1 @@
+This is an old jQuery experiment. Just trying to make it a bit more tidy so maybe someone can use it someday. 
